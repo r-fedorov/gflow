@@ -1,0 +1,5 @@
+logdir:
+  root: ./logs
+data:
+  root: /Users/rostislavfedorov/Documents/PhD/gflow_interview/data
+

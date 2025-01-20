@@ -1,0 +1,7 @@
+defaults:
+  - base
+
+_target_: mvp_proxy.Mars6DProxy
+reward_function: identity
+
+
