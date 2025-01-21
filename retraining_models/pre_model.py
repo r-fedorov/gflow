@@ -1,7 +1,7 @@
-"""
-Original github link 
 
-"""
+# Based on https://github.com/Lulu971231/code-for-Oxygen-Producing-Catalysts-from-Martian-Meteorites/tree/main
+
+
 import os
 import joblib
 import pandas as pd

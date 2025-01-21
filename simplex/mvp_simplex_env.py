@@ -87,47 +87,6 @@ class SimplexWalker(ContinuousCube):
         states = 0.5 * states + 0.1
         state_sum = torch.sum(
             states, dim=1, keepdim=True)  # Shape: [batch, 1]
-        outline = 1-state_sum
-        state_e = 1-state_sum
-        outline = torch.clip(outline, min=-0.6*self.n_dim, max=0.0)
-        state_e = torch.clip(state_e, min=0.1, max=0.6)
-
-        # Concatenate the states with their sums along the last dimension
-        # Shape: [batch, state_dim + 1]
-        states = torch.cat([states, state_e], dim=1)
-        state_norm = states / torch.sum(
-            states, dim=1, keepdim=True)
-
-        metal_prop = self._compute_metal_proportions(state_norm)
-
-        states = torch.cat(
-            [metal_prop, outline], dim=1)
-
-        return states
-
-    def states2proxy(
-        self, states: Union[List, TensorType["batch", "state_dim"]]
-    ) -> TensorType["batch", "state_dim"]:
-        """
-        Prepares a batch of states in "environment format" for a proxy: clips the
-        states into [0, 1] and maps them to [CELL_MIN, CELL_MAX]
-
-        Args
-        ----
-        states : list or tensor
-            A batch of states in environment format, either as a list of states or as a
-            single tensor.
-
-        Returns
-        -------
-        A tensor containing all the states in the batch.
-        """
-        # Compute the sum along the state dimension for each batch element
-        states = tfloat(states, device=self.device, float_type=self.float)
-        states = torch.clip(states, min=0.0, max=1.0)
-        states = 0.5 * states + 0.1
-        state_sum = torch.sum(
-            states, dim=1, keepdim=True)  # Shape: [batch, 1]
         state_e = 1-state_sum
 
         # Concatenate the states with their sums along the last dimension
