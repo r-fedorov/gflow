@@ -14,7 +14,7 @@ from omegaconf import open_dict
 from gflownet.utils.policy import parse_policy_config
 
 
-@hydra.main(config_path="mars_config/", config_name="main", version_base="1.1")
+@hydra.main(config_path="mars_config/", config_name="main_simplex", version_base="1.1")
 def main(config):
 
     # Set and print working and logging directory

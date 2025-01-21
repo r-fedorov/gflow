@@ -154,6 +154,9 @@ class MVP(ContinuousCube):
         converted = converted / converted.sum(dim=1, keepdim=True)
 
         return converted, -outline
+    
+
+    
 
 
 
