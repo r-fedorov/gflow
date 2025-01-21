@@ -45,6 +45,9 @@ Although this solution provides a functional implementation, there is significan
 #### UDPDATE 
 
 fixed the log prob, now it works. Small test: Train data Mean Score -> 1.8514679012345678 SimplexWalker -> 2.20 
+#### UDPDATE #2
+
+Added a random and deafault param configs, now can be run from a main function and is being parametrised by its own output
 
 **Outline of the Advanced SimplexWalker Environment**
 
