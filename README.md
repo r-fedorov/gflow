@@ -42,6 +42,10 @@ Project Root
 
 Although this solution provides a functional implementation, there is significant room for optimization and enhancement. The current approach serves as a robust starting point, with a clear path for further development.
 
+#### UDPDATE 
+
+fixed the log prob, now it works. Small test: Train data Mean Score -> 1.8514679012345678 SimplexWalker -> 2.20 
+
 **Outline of the Advanced SimplexWalker Environment**
 
 The SimplexWalker environment introduces a more sophisticated approach to navigating the chemical space. The current implementation is functional for sampling, additional debugging is required to resolve issues with computing log probabilities.
@@ -73,7 +77,7 @@ Log probabilities are masked for dimensions where no updates occur.
 
 The log probability of the one-hot selection is added.
 
-This approach builds on the foundation established in the MVP solution, extending its capabilities in a seamless and conceptually. While some debugging is still necessary, particularly with log probability calculations, this method is expected to deliver improved results with an additional week of development and testing.
+
 
 
 
