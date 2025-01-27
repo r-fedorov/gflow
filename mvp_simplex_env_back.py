@@ -323,11 +323,14 @@ class SimplexWalker(ContinuousCube):
 
         if is_backward:
             
-            C = torch.sum(states, dim=1, keepdim=True)
-            room=torch.clamp(C-min_increments,min=0.0,max=1.0)
+            #C = torch.sum(states, dim=1, keepdim=True)
+            #room=torch.clamp(C-min_increments,min=0.0,max=1.0)
+            room = torch.clamp(states - min_increments, 0.0, 1.0)
+            a = min_increments + increments_rel * room
 
 
-            return min_increments + increments_rel * room
+            #return min_increments + increments_rel * room
+            return a
         else:
             B = (1.0 - torch.sum(states, dim=1, keepdim=True))
             room=torch.clamp(B-min_increments,min=0.0,max=1.0)
@@ -364,12 +367,11 @@ class SimplexWalker(ContinuousCube):
             increments_abs, self.min_incr, dtype=self.float, device=self.device
         )
         #min_increments = min_increments*increments_one_hot
-
+  
         if is_backward:
-            C = torch.sum(states, dim=1, keepdim=True)
-            increments_rel = (
-                increments_abs - min_increments) / C - min_increments
-
+            increments_rel = (increments_abs - min_increments) / (
+                states - min_increments
+            )
             # Add epsilon to numerator and denominator if values are unbounded
             if not torch.all(torch.isfinite(increments_rel)):
                 increments_rel = (increments_abs - min_increments + 1e-9) / (
@@ -406,12 +408,12 @@ class SimplexWalker(ContinuousCube):
         the backward move) used for the transformation.
         """
         if is_backward:
-            # For a backward update we assume:
+            min_increments = torch.full_like(
+                states_from, self.min_incr, dtype=self.float, device=self.device
+            )
+    
+            return 1.0 / ((states_from - min_increments))
 
-            # Compute C for each sample:
-            C = torch.sum(states_from, dim=1, keepdim=True)
-            # The Jacobian for each coordinate is then 1 / (C - m)
-            return 1.0 / (C - self.min_incr)
         else:
             # For a forward update we assume:
 
@@ -477,7 +479,7 @@ class SimplexWalker(ContinuousCube):
         # If any dimension of the state is greater then 1-icr,then continuous
         # actions are invalid
 
-        if any([s > 1 - self.min_incr  for s in self._get_effective_dims(state)]):
+        if any([s > 1 - self.min_incr and sum(self._get_effective_dims(state)) >= 0 for s in self._get_effective_dims(state)]):
             mask[0] = True
   
 

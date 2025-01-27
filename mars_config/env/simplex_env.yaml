@@ -15,6 +15,21 @@ n_comp: 2
 epsilon: 1e-6
 beta_params_min: 0.1
 beta_params_max: 100.0
+random_distr_params:
+  beta_weights: 1.0
+  beta_alpha: 10.0
+  beta_beta: 10.0
+  bernoulli_bts_prob: 0.1
+  bernoulli_eos_prob: 0.1
+  one_hot_logits: [1.0, 1.0, 1.0, 1.0]
+
+fixed_distr_params:
+  beta_weights: 1.0
+  beta_alpha: 10.0
+  beta_beta: 10.0
+  bernoulli_bts_prob: 0.1
+  bernoulli_eos_prob: 0.1
+  one_hot_logits: [1.0, 1.0, 1.0, 1.0]
 
 
 buffer:
@@ -25,10 +40,6 @@ buffer:
     samples_column: samples
     energies_column: energies    
 
-    
-  test:
-    type: random
-    n: 900
  
 
 

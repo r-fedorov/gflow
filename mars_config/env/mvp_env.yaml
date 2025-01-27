@@ -37,9 +37,7 @@ buffer:
     energies_column: energies    
 
     
-  test:
-    type: random
-    n: 900
+
  
 
 

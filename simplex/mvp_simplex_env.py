@@ -23,26 +23,30 @@ abcdelist = torch.tensor(
 
 class SimplexWalker(ContinuousCube):
     def __init__(self,
-                 fixed_distr_params: dict = {
-            "beta_weights": 1.0,
-            "beta_alpha": 10.0,
-                     "beta_beta": 10.0,
-                     "bernoulli_bts_prob": 0.1,
-                     "bernoulli_eos_prob": 0.1,
-                     "one_hot_logit": torch.ones(4),
-                 },
-                 random_distr_params: dict = {
-            "beta_weights": 1.0,
-                     "beta_alpha": 10.0,
-                     "beta_beta": 10.0,
-                     "bernoulli_bts_prob": 0.1,
-                     "bernoulli_eos_prob": 0.1,
-                     "one_hot_logit": torch.ones(4),
-                 },
+                 random_distr_params = {
+                "beta_weights": 1.0,
+                "beta_alpha": 10.0,
+                "beta_beta": 10.0,
+                "bernoulli_bts_prob": 0.1,
+                "bernoulli_eos_prob": 0.1,
+                "one_hot_logits": torch.zeros(4) + 1.0,  
+                },
+                fixed_distr_params = {
+                "beta_weights": 1.0,
+                "beta_alpha": 10.0,
+                "beta_beta": 10.0,
+                "bernoulli_bts_prob": 0.1,
+                "bernoulli_eos_prob": 0.1,
+                "one_hot_logits": torch.zeros(4) + 1.0,  
+                }, **kwargs):
+        self.random_distr_params=random_distr_params
+        self.fixed_distr_params=fixed_distr_params
 
-                 **kwargs,):
 
-        super().__init__(**kwargs)
+        super().__init__(fixed_distr_params=fixed_distr_params,
+            random_distr_params=random_distr_params,**kwargs)
+
+
 
     def states2policy(
         self, states: Union[List, TensorType["batch", "state_dim"]]
@@ -209,6 +213,80 @@ class SimplexWalker(ContinuousCube):
         converted = converted / converted.sum(dim=1, keepdim=True)
 
         return converted, -outline
+    
+    def get_policy_output(self, params: dict) -> TensorType["policy_output_dim"]:
+        """
+        ...
+        The environment consists of both continuous and discrete actions.
+        ...
+        D x C x 3 + 2
+        ...
+        """
+        # Continuous part: mixture of Beta distributions
+        if params is None:
+            raise ValueError("The 'params' argument is None.")
+            print("params:", params)
+        self._len_policy_output_cont = self.n_dim * self.n_comp * 3
+        policy_output_cont = torch.empty(
+            self._len_policy_output_cont,
+            dtype=self.float,
+            device=self.device,
+        )
+        policy_output_cont[0::3] = params["beta_weights"]
+        policy_output_cont[1::3] = self._beta_params_to_policy_outputs("alpha", params)
+        policy_output_cont[2::3] = self._beta_params_to_policy_outputs("beta", params)
+
+        # Logit for Bernoulli distribution to model back-to-source (BTS) action
+        policy_output_bts_logit = torch.logit(
+            tfloat(
+                [params["bernoulli_bts_prob"]],
+                float_type=self.float,
+                device=self.device,
+            )
+        )
+        # Logit for Bernoulli distribution to model EOS action
+
+        if ["bernoulli_eos_prob"] is None:
+
+            raise ValueError("bernoulli_eos_prob argument is None.")
+            
+        policy_output_eos_logit = torch.logit(
+            tfloat(
+                [params["bernoulli_eos_prob"]],
+                float_type=self.float,
+                device=self.device,
+            )
+        )
+
+
+        # ---- NEW PART: one‐hot dimension‐selection logits ----
+
+        
+        policy_output_one_hot_logit = tfloat(
+            params["one_hot_logits"],  # shape n_dim
+            float_type=self.float,
+            device=self.device,
+        )
+
+
+        # Ensure shape [n_dim]
+        #assert policy_output_one_hot_logit.shape[-1] == self.n_dim
+
+        # Concatenate all outputs.  Final shape becomes:
+        #   n_dim * n_comp * 3  (beta mixture)
+        # + 1                   (bts logit)
+        # + 1                   (eos logit)
+        # + n_dim               (one‐hot logits)
+        # = n_dim * n_comp * 3 + 2 + n_dim
+        policy_output = torch.cat(
+            (
+                policy_output_cont,
+                policy_output_bts_logit,  # shape [1]
+                policy_output_eos_logit,  # shape [1]
+                policy_output_one_hot_logit,  # shape [n_dim]
+            )
+        )
+        return policy_output
 
     def relative_to_absolute_increments(
         self,
@@ -922,6 +1000,7 @@ class SimplexWalker(ContinuousCube):
         Assumes that the policy_output contains the Beta mixture parameters in the first part and,
         additionally, a set of logits for the one-hot distribution (for instance, the last self.n_dim values).
         """
+
         # Extract parameters for the Beta mixture (for each dimension and component)
         mix_logits = self._get_policy_betas_weights(policy_outputs).reshape(
             -1, self.n_dim, self.n_comp

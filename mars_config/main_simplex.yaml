@@ -1,0 +1,32 @@
+defaults:
+  - _self_
+  - env: simplex_env
+  - gflownet: trajectorybalance_mars
+  - policy: mlp_mvp_simplex
+  - proxy: mvp_act
+  - logger: wandb
+  - evaluator: evaluator_base
+  - user: default
+
+# Device
+device: cpu
+# Float precision
+float_precision: 32
+# Number of objects to sample at the end of training
+n_samples: 1000
+# Random seeds
+seed: 0
+
+
+
+
+
+# Hydra config
+hydra:
+  # Define the working directory for Hydra
+  run:
+    dir: ${user.logdir.root}/${oc.env:SLURM_JOB_ID,local}/${now:%Y-%m-%d_%H-%M-%S_%f}
+  sweep:
+    dir: ${user.logdir.root}/${oc.env:SLURM_JOB_ID,local}/multirun/${now:%Y-%m-%d_%H-%M-%S_%f}
+  job:
+    chdir: False

@@ -1,0 +1,10 @@
+defaults:
+  - mlp
+
+# This sets up the backward pass / training strategy
+backward:
+  shared_weights: True
+  checkpoint: null
+  reload_ckpt: False
+
+
